@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administrador - Incubadora de Startups</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome para Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos CSS Personalizados -->
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f9;
+      overflow-x: hidden;
+    }
+    
+    .sidebar {
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      background-color: #343a40;
+      padding-top: 20px;
+      overflow-y: auto;
+      transition: all 0.3s;
+    }
+    
+    .sidebar.collapsed {
+      width: 80px;
+    }
+    
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+      transition: background 0.3s, padding 0.3s;
+    }
+    
+    .sidebar.collapsed a {
+      justify-content: center;
+      padding: 12px 10px;
+    }
+    
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    
+    .sidebar a.active {
+      background-color: #495057;
+    }
+    
+    .sidebar a i {
+      margin-right: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+    
+    .sidebar.collapsed a span {
+      display: none;
+    }
+    
+    .toggle-btn {
+      position: absolute;
+      top: 15px;
+      right: -25px;
+      background-color: #343a40;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+    
+    .sidebar.collapsed + .content {
+      margin-left: 80px;
+    }
+    
+    .card {
+      margin-bottom: 20px;
+    }
+    
+    .form-section {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    
+    /* Estilos para tablas más legibles */
+    table th, table td {
+      vertical-align: middle;
+    }
+    
+    /* Alertas personalizadas */
+    .alert-custom {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1055;
+      min-width: 250px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 80px;
+      }
+      
+      .sidebar a span {
+        display: none;
+      }
+      
+      .sidebar a i {
+        margin: 0;
+      }
+      
+      .content {
+        margin-left: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Sidebar de Navegación -->
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" id="toggle-btn" aria-label="Toggle Navigation">
+      <i class="fas fa-angle-left"></i>
+    </button>
+    <h3 class="text-center text-white mb-4 d-none d-md-block">Administrador</h3>
+    <a href="#" data-section="programas" class="active">
+      <i class="fas fa-briefcase"></i>
+      <span>Programas</span>
+    </a>
+    <a href="#" data-section="recursos">
+      <i class="fas fa-book"></i>
+      <span>Recursos</span>
+    </a>
+    <a href="#" data-section="blog">
+      <i class="fas fa-newspaper"></i>
+      <span>Blog</span>
+    </a>
+    <a href="#" data-section="eventos">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Eventos</span>
+    </a>
+    <a href="#" data-section="postulaciones">
+      <i class="fas fa-file-alt"></i>
+      <span>Postulaciones</span>
+    </a>
+    <a href="#" data-section="testimonios">
+      <i class="fas fa-comments"></i>
+      <span>Testimonios</span>
+    </a>
+    <a href="#" data-section="contacto">
+      <i class="fas fa-envelope"></i>
+      <span>Contacto</span>
+    </a>
+    <!-- Opcional: Cerrar Sesión (Pendiente de Implementación) -->
+    <!-- <a href="#" id="logout-btn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Cerrar Sesión</span>
+    </a> -->
+  </div>
+  
+  <!-- Contenido Principal -->
+  <div class="content" id="main-content">
+    
+    <!-- Alertas -->
+    <div id="alert-container" class="alert-custom"></div>
+    
+    <!-- Secciones de Gestión -->
+    
+    <!-- Gestión de Programas -->
+    <div id="programas" class="seccion-gestion">
+      <h2 class="mb-4">Gestionar Programas</h2>
+      
+      <!-- Formulario para Agregar/Editar Programa -->
+      <div class="form-section">
+        <h4 id="form-title">Agregar Nuevo Programa</h4>
+        <form id="programa-form">
+          <input type="hidden" id="programa-id">
+          <div class="mb-3">
+            <label for="programa-nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="programa-nombre" placeholder="Nombre del programa" required>
+          </div>
+          <div class="mb-3">
+            <label for="programa-descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="programa-descripcion" rows="3" placeholder="Descripción del programa" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="programa-tipo" class="form-label">Tipo</label>
+            <select class="form-select" id="programa-tipo" required>
+              <option value="">Selecciona el tipo</option>
+              <option value="Incubación">Incubación</option>
+              <option value="Mentoría">Mentoría</option>
+              <option value="Aceleración">Aceleración</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="programa-fecha-inicio" class="form-label">Fecha de Inicio</label>
+              <input type="date" class="form-control" id="programa-fecha-inicio" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="programa-fecha-fin" class="form-label">Fecha de Finalización</label>
+              <input type="date" class="form-control" id="programa-fecha-fin" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="programa-requisitos" class="form-label">Requisitos</label>
+            <input type="text" class="form-control" id="programa-requisitos" placeholder="Lista de requisitos separados por comas" required>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2"><i class="fas fa-save me-2"></i> Guardar Programa</button>
+            <button type="button" class="btn btn-secondary" id="programa-cancelar"><i class="fas fa-times me-2"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Lista de Programas -->
+      <div class="mt-5">
+        <h4>Listado de Programas</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-programas">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Recursos -->
+    <div id="recursos" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Recursos</h2>
+      
+      <!-- Formulario para Agregar/Editar Recurso -->
+      <div class="form-section">
+        <h4 id="form-title-recursos">Agregar Nuevo Recurso</h4>
+        <form id="recurso-form">
+          <input type="hidden" id="recurso-id">
+          <div class="mb-3">
+            <label for="recurso-titulo" class="form-label">Título</label>
+            <input type="text" class="form-control" id="recurso-titulo" placeholder="Título del recurso" required>
+          </div>
+          <div class="mb-3">
+            <label for="recurso-tipo" class="form-label">Tipo</label>
+            <select class="form-select" id="recurso-tipo" required>
+              <option value="">Selecciona el tipo</option>
+              <option value="Guía">Guía</option>
+              <option value="Tutorial">Tutorial</option>
+              <option value="Plantilla">Plantilla</option>
+              <option value="Herramienta">Herramienta</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="recurso-descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="recurso-descripcion" rows="3" placeholder="Descripción del recurso" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="recurso-url" class="form-label">URL del Archivo</label>
+            <input type="url" class="form-control" id="recurso-url" placeholder="https://ejemplo.com/recurso.pdf" required>
+          </div>
+          <div class="mb-3">
+            <label for="recurso-categoria" class="form-label">Categoría</label>
+            <input type="text" class="form-control" id="recurso-categoria" placeholder="Categoría del recurso (e.g., Marketing, Finanzas)" required>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2"><i class="fas fa-save me-2"></i> Guardar Recurso</button>
+            <button type="button" class="btn btn-secondary" id="recurso-cancelar"><i class="fas fa-times me-2"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Lista de Recursos -->
+      <div class="mt-5">
+        <h4>Listado de Recursos</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Título</th>
+                <th>Tipo</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-recursos">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Blog -->
+    <div id="blog" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Blog</h2>
+      
+      <!-- Formulario para Agregar/Editar Artículo -->
+      <div class="form-section">
+        <h4 id="form-title-blog">Agregar Nuevo Artículo</h4>
+        <form id="blog-form">
+          <input type="hidden" id="blog-id">
+          <div class="mb-3">
+            <label for="blog-titulo" class="form-label">Título</label>
+            <input type="text" class="form-control" id="blog-titulo" placeholder="Título del artículo" required>
+          </div>
+          <div class="mb-3">
+            <label for="blog-contenido" class="form-label">Contenido</label>
+            <textarea class="form-control" id="blog-contenido" rows="5" placeholder="Contenido del artículo" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="blog-categoria" class="form-label">Categoría</label>
+            <input type="text" class="form-control" id="blog-categoria" placeholder="Categoría del artículo (e.g., Tendencias, Educación)" required>
+          </div>
+          <div class="mb-3">
+            <label for="blog-imagen" class="form-label">Imagen Destacada (URL)</label>
+            <input type="url" class="form-control" id="blog-imagen" placeholder="https://ejemplo.com/imagen.jpg" required>
+          </div>
+          <div class="mb-3">
+            <label for="blog-tags" class="form-label">Etiquetas (separadas por comas)</label>
+            <input type="text" class="form-control" id="blog-tags" placeholder="emprendimiento, tecnología" required>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2"><i class="fas fa-save me-2"></i> Guardar Artículo</button>
+            <button type="button" class="btn btn-secondary" id="blog-cancelar"><i class="fas fa-times me-2"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Lista de Artículos -->
+      <div class="mt-5">
+        <h4>Listado de Artículos</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Fecha Publicación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-blog">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Eventos -->
+    <div id="eventos" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Eventos</h2>
+      
+      <!-- Formulario para Agregar/Editar Evento -->
+      <div class="form-section">
+        <h4 id="form-title-eventos">Agregar Nuevo Evento</h4>
+        <form id="evento-form">
+          <input type="hidden" id="evento-id">
+          <div class="mb-3">
+            <label for="evento-nombre" class="form-label">Nombre del Evento</label>
+            <input type="text" class="form-control" id="evento-nombre" placeholder="Nombre del evento" required>
+          </div>
+          <div class="mb-3">
+            <label for="evento-descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="evento-descripcion" rows="3" placeholder="Descripción del evento" required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="evento-fecha" class="form-label">Fecha y Hora</label>
+              <input type="datetime-local" class="form-control" id="evento-fecha" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="evento-ubicacion" class="form-label">Ubicación</label>
+              <input type="text" class="form-control" id="evento-ubicacion" placeholder="Ubicación del evento (si es presencial)" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="evento-tipo" class="form-label">Tipo de Evento</label>
+            <select class="form-select" id="evento-tipo" required>
+              <option value="">Selecciona el tipo</option>
+              <option value="Webinar">Webinar</option>
+              <option value="Taller">Taller</option>
+              <option value="Conferencia">Conferencia</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="evento-enlace" class="form-label">Enlace de Inscripción</label>
+            <input type="url" class="form-control" id="evento-enlace" placeholder="https://ejemplo.com/inscripcion" required>
+          </div>
+          <div class="mb-3">
+            <label for="evento-imagen" class="form-label">Imagen del Evento (URL)</label>
+            <input type="url" class="form-control" id="evento-imagen" placeholder="https://ejemplo.com/imagen.jpg" required>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2"><i class="fas fa-save me-2"></i> Guardar Evento</button>
+            <button type="button" class="btn btn-secondary" id="evento-cancelar"><i class="fas fa-times me-2"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Lista de Eventos -->
+      <div class="mt-5">
+        <h4>Listado de Eventos</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Fecha y Hora</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-eventos">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Postulaciones -->
+    <div id="postulaciones" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Postulaciones</h2>
+      
+      <!-- Lista de Postulaciones -->
+      <div class="mt-5">
+        <h4>Listado de Postulaciones</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Programa</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-postulaciones">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Testimonios -->
+    <div id="testimonios" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Testimonios</h2>
+      
+      <!-- Formulario para Agregar/Editar Testimonio -->
+      <div class="form-section">
+        <h4 id="form-title-testimonios">Agregar Nuevo Testimonio</h4>
+        <form id="testimonio-form">
+          <input type="hidden" id="testimonio-id">
+          <div class="mb-3">
+            <label for="testimonio-nombre" class="form-label">Nombre de la Startup</label>
+            <input type="text" class="form-control" id="testimonio-nombre" placeholder="Nombre de la startup" required>
+          </div>
+          <div class="mb-3">
+            <label for="testimonio-descripcion" class="form-label">Testimonio</label>
+            <textarea class="form-control" id="testimonio-descripcion" rows="3" placeholder="Contenido del testimonio" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="testimonio-proyecto" class="form-label">Proyecto Relacionado</label>
+            <input type="text" class="form-control" id="testimonio-proyecto" placeholder="Proyecto o programa relacionado" required>
+          </div>
+          <div class="mb-3">
+            <label for="testimonio-imagen" class="form-label">Imagen de la Startup (URL)</label>
+            <input type="url" class="form-control" id="testimonio-imagen" placeholder="https://ejemplo.com/imagen.jpg">
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2"><i class="fas fa-save me-2"></i> Guardar Testimonio</button>
+            <button type="button" class="btn btn-secondary" id="testimonio-cancelar"><i class="fas fa-times me-2"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Lista de Testimonios -->
+      <div class="mt-5">
+        <h4>Listado de Testimonios</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre de la Startup</th>
+                <th>Proyecto</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-testimonios">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Gestión de Contacto -->
+    <div id="contacto" class="seccion-gestion" style="display: none;">
+      <h2 class="mb-4">Gestionar Contacto</h2>
+      
+      <!-- Lista de Mensajes de Contacto -->
+      <div class="mt-5">
+        <h4>Listado de Mensajes</h4>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Asunto</th>
+                <th>Mensaje</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-contacto">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- Scripts JavaScript Embebidos -->
+  <script type="module">
+    // Importar las funciones necesarias de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAm0E9mC_wUZvx7gKiZ1llWo-DEjtY9Xes",
+      authDomain: "ubaunas.firebaseapp.com",
+      projectId: "ubaunas",
+      storageBucket: "ubaunas.firebasestorage.app",
+      messagingSenderId: "66441546910",
+      appId: "1:66441546910:web:c6f850192ee18361383f8f",
+      measurementId: "G-5E6X47T6R4"
+    };
+    
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // ============================
+    // Función para Mostrar Alertas Personalizadas
+    // ============================
+    const alertContainer = document.getElementById('alert-container');
+    
+    function mostrarAlerta(tipo, mensaje) {
+      const alertaDiv = document.createElement('div');
+      alertaDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+      alertaDiv.setAttribute('role', 'alert');
+      alertaDiv.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      `;
+      alertContainer.appendChild(alertaDiv);
+      
+      // Eliminar la alerta después de 5 segundos
+      setTimeout(() => {
+        const alert = bootstrap.Alert.getOrCreateInstance(alertaDiv);
+        alert.close();
+      }, 5000);
+    }
+    
+    // ============================
+    // Gestión de Secciones
+    // ============================
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const secciones = document.querySelectorAll('.seccion-gestion');
+    const enlacesSidebar = document.querySelectorAll('.sidebar a[data-section]');
+    
+    // Función para mostrar una sección específica
+    function mostrarSeccion(seccion) {
+      secciones.forEach(sec => {
+        sec.style.display = sec.id === seccion ? 'block' : 'none';
+      });
+    }
+    
+    // Event Listener para los enlaces del sidebar
+    enlacesSidebar.forEach(enlace => {
+      enlace.addEventListener('click', (e) => {
+        e.preventDefault();
+        const seccion = enlace.getAttribute('data-section');
+        mostrarSeccion(seccion);
+        // Resaltar el enlace activo
+        enlacesSidebar.forEach(el => el.classList.remove('active'));
+        enlace.classList.add('active');
+      });
+    });
+    
+    // Mostrar la primera sección por defecto
+    document.addEventListener('DOMContentLoaded', () => {
+      if (enlacesSidebar.length > 0) {
+        const firstSection = enlacesSidebar[0].getAttribute('data-section');
+        mostrarSeccion(firstSection);
+        enlacesSidebar[0].classList.add('active');
+      }
+      cargarProgramas();
+      cargarRecursos();
+      cargarBlog();
+      cargarEventos();
+      cargarPostulaciones();
+      cargarTestimonios();
+      cargarContacto();
+    });
+    
+    // Event Listener para el botón de toggle del sidebar
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      const icon = toggleBtn.querySelector('i');
+      icon.classList.toggle('fa-angle-left');
+      icon.classList.toggle('fa-angle-right');
+    });
+    
+    // ============================
+    // Función para Escapar HTML y prevenir XSS
+    // ============================
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // ============================
+    // Gestión de Programas
+    // ============================
+    const tablaProgramas = document.getElementById('tabla-programas');
+    const programaForm = document.getElementById('programa-form');
+    const programaIdInput = document.getElementById('programa-id');
+    const programaNombreInput = document.getElementById('programa-nombre');
+    const programaDescripcionInput = document.getElementById('programa-descripcion');
+    const programaTipoInput = document.getElementById('programa-tipo');
+    const programaFechaInicioInput = document.getElementById('programa-fecha-inicio');
+    const programaFechaFinInput = document.getElementById('programa-fecha-fin');
+    const programaRequisitosInput = document.getElementById('programa-requisitos');
+    const programaCancelarBtn = document.getElementById('programa-cancelar');
+    const formTitle = document.getElementById('form-title');
+    
+    // Cargar Programas al Iniciar
+    async function cargarProgramas() {
+      try {
+        const programasCol = collection(db, "Programas");
+        const programasSnapshot = await getDocs(programasCol);
+        tablaProgramas.innerHTML = '';
+        
+        programasSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.nombre)}</td>
+            <td>${escapeHTML(data.tipo)}</td>
+            <td>${data.fecha_inicio ? data.fecha_inicio.toDate().toLocaleDateString() : 'N/A'}</td>
+            <td>${data.fecha_fin ? data.fecha_fin.toDate().toLocaleDateString() : 'N/A'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" data-id="${docSnap.id}" data-nombre="${escapeHTML(data.nombre)}" data-descripcion="${escapeHTML(data.descripcion)}" data-tipo="${data.tipo}" data-fecha-inicio="${data.fecha_inicio ? data.fecha_inicio.toDate().toISOString().split('T')[0] : ''}" data-fecha-fin="${data.fecha_fin ? data.fecha_fin.toDate().toISOString().split('T')[0] : ''}" data-requisitos="${escapeHTML(data.requisitos.join(', '))}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          tablaProgramas.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de editar y eliminar
+        agregarEventosProgramas();
+      } catch (error) {
+        console.error("Error al cargar programas:", error);
+        mostrarAlerta('danger', 'Error al cargar programas. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de programas
+    function agregarEventosProgramas() {
+      // Editar
+      const botonesEditar = tablaProgramas.querySelectorAll('button.btn-primary');
+      botonesEditar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          editarPrograma(
+            btn.getAttribute('data-id'),
+            btn.getAttribute('data-nombre'),
+            btn.getAttribute('data-descripcion'),
+            btn.getAttribute('data-tipo'),
+            btn.getAttribute('data-fecha-inicio'),
+            btn.getAttribute('data-fecha-fin'),
+            btn.getAttribute('data-requisitos')
+          );
+        });
+      });
+      
+      // Eliminar
+      const botonesEliminar = tablaProgramas.querySelectorAll('button.btn-danger');
+      botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          eliminarPrograma(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Manejar Envío de Formulario de Programa
+    programaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = programaIdInput.value;
+      const nombre = programaNombreInput.value.trim();
+      const descripcion = programaDescripcionInput.value.trim();
+      const tipo = programaTipoInput.value;
+      const fechaInicio = programaFechaInicioInput.value;
+      const fechaFin = programaFechaFinInput.value;
+      const requisitos = programaRequisitosInput.value.split(',').map(item => item.trim()).filter(item => item !== '');
+      
+      if (new Date(fechaInicio) > new Date(fechaFin)) {
+        mostrarAlerta('warning', 'La fecha de inicio no puede ser posterior a la fecha de finalización.');
+        return;
+      }
+      
+      if (id) {
+        // Actualizar Programa Existente
+        try {
+          const programaRef = doc(db, "Programas", id);
+          await updateDoc(programaRef, {
+            nombre,
+            descripcion,
+            tipo,
+            fecha_inicio: Timestamp.fromDate(new Date(fechaInicio)),
+            fecha_fin: Timestamp.fromDate(new Date(fechaFin)),
+            requisitos
+          });
+          mostrarAlerta('success', 'Programa actualizado exitosamente.');
+        } catch (error) {
+          console.error('Error al actualizar el programa:', error);
+          mostrarAlerta('danger', 'Error al actualizar el programa. Inténtalo nuevamente.');
+        }
+      } else {
+        // Agregar Nuevo Programa
+        try {
+          await addDoc(collection(db, "Programas"), {
+            nombre,
+            descripcion,
+            tipo,
+            fecha_inicio: Timestamp.fromDate(new Date(fechaInicio)),
+            fecha_fin: Timestamp.fromDate(new Date(fechaFin)),
+            requisitos
+          });
+          mostrarAlerta('success', 'Programa agregado exitosamente.');
+        } catch (error) {
+          console.error('Error al agregar el programa:', error);
+          mostrarAlerta('danger', 'Error al agregar el programa. Inténtalo nuevamente.');
+        }
+      }
+      
+      // Resetear Formulario
+      resetProgramaForm();
+      // Recargar Programas
+      cargarProgramas();
+    });
+    
+    // Función para Editar Programa
+    function editarPrograma(id, nombre, descripcion, tipo, fechaInicio, fechaFin, requisitos) {
+      programaIdInput.value = id;
+      programaNombreInput.value = nombre;
+      programaDescripcionInput.value = descripcion;
+      programaTipoInput.value = tipo;
+      programaFechaInicioInput.value = fechaInicio;
+      programaFechaFinInput.value = fechaFin;
+      programaRequisitosInput.value = requisitos;
+      formTitle.textContent = 'Editar Programa';
+    }
+    
+    // Función para Eliminar Programa
+    async function eliminarPrograma(id) {
+      if (confirm('¿Estás seguro de eliminar este programa?')) {
+        try {
+          await deleteDoc(doc(db, "Programas", id));
+          mostrarAlerta('success', 'Programa eliminado exitosamente.');
+          cargarProgramas();
+        } catch (error) {
+          console.error('Error al eliminar el programa:', error);
+          mostrarAlerta('danger', 'Error al eliminar el programa. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // Función para Resetear Formulario de Programa
+    programaCancelarBtn.addEventListener('click', () => {
+      resetProgramaForm();
+    });
+    
+    function resetProgramaForm() {
+      programaIdInput.value = '';
+      programaForm.reset();
+      formTitle.textContent = 'Agregar Nuevo Programa';
+    }
+    
+    // ============================
+    // Gestión de Recursos
+    // ============================
+    const tablaRecursos = document.getElementById('tabla-recursos');
+    const recursoForm = document.getElementById('recurso-form');
+    const recursoIdInput = document.getElementById('recurso-id');
+    const recursoTituloInput = document.getElementById('recurso-titulo');
+    const recursoTipoInput = document.getElementById('recurso-tipo');
+    const recursoDescripcionInput = document.getElementById('recurso-descripcion');
+    const recursoUrlInput = document.getElementById('recurso-url');
+    const recursoCategoriaInput = document.getElementById('recurso-categoria');
+    const recursoCancelarBtn = document.getElementById('recurso-cancelar');
+    const formTitleRecursos = document.getElementById('form-title-recursos');
+    
+    // Cargar Recursos al Iniciar
+    async function cargarRecursos() {
+      try {
+        const recursosCol = collection(db, "Recursos");
+        const recursosSnapshot = await getDocs(recursosCol);
+        tablaRecursos.innerHTML = '';
+        
+        recursosSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.titulo)}</td>
+            <td>${escapeHTML(data.tipo)}</td>
+            <td>${escapeHTML(data.categoria)}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" data-id="${docSnap.id}" data-titulo="${escapeHTML(data.titulo)}" data-tipo="${data.tipo}" data-descripcion="${escapeHTML(data.descripcion)}" data-url="${data.url}" data-categoria="${escapeHTML(data.categoria)}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          tablaRecursos.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de editar y eliminar
+        agregarEventosRecursos();
+      } catch (error) {
+        console.error("Error al cargar recursos:", error);
+        mostrarAlerta('danger', 'Error al cargar recursos. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de recursos
+    function agregarEventosRecursos() {
+      // Editar
+      const botonesEditar = tablaRecursos.querySelectorAll('button.btn-primary');
+      botonesEditar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          editarRecurso(
+            btn.getAttribute('data-id'),
+            btn.getAttribute('data-titulo'),
+            btn.getAttribute('data-descripcion'),
+            btn.getAttribute('data-tipo'),
+            btn.getAttribute('data-url'),
+            btn.getAttribute('data-categoria')
+          );
+        });
+      });
+      
+      // Eliminar
+      const botonesEliminar = tablaRecursos.querySelectorAll('button.btn-danger');
+      botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          eliminarRecurso(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Manejar Envío de Formulario de Recurso
+    recursoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = recursoIdInput.value;
+      const titulo = recursoTituloInput.value.trim();
+      const tipo = recursoTipoInput.value;
+      const descripcion = recursoDescripcionInput.value.trim();
+      const url = recursoUrlInput.value.trim();
+      const categoria = recursoCategoriaInput.value.trim();
+      
+      if (id) {
+        // Actualizar Recurso Existente
+        try {
+          const recursoRef = doc(db, "Recursos", id);
+          await updateDoc(recursoRef, {
+            titulo,
+            tipo,
+            descripcion,
+            url,
+            categoria
+          });
+          mostrarAlerta('success', 'Recurso actualizado exitosamente.');
+        } catch (error) {
+          console.error('Error al actualizar el recurso:', error);
+          mostrarAlerta('danger', 'Error al actualizar el recurso. Inténtalo nuevamente.');
+        }
+      } else {
+        // Agregar Nuevo Recurso
+        try {
+          await addDoc(collection(db, "Recursos"), {
+            titulo,
+            tipo,
+            descripcion,
+            url,
+            categoria
+          });
+          mostrarAlerta('success', 'Recurso agregado exitosamente.');
+        } catch (error) {
+          console.error('Error al agregar el recurso:', error);
+          mostrarAlerta('danger', 'Error al agregar el recurso. Inténtalo nuevamente.');
+        }
+      }
+      
+      // Resetear Formulario
+      resetRecursoForm();
+      // Recargar Recursos
+      cargarRecursos();
+    });
+    
+    // Función para Editar Recurso
+    function editarRecurso(id, titulo, descripcion, tipo, url, categoria) {
+      recursoIdInput.value = id;
+      recursoTituloInput.value = titulo;
+      recursoDescripcionInput.value = descripcion;
+      recursoTipoInput.value = tipo;
+      recursoUrlInput.value = url;
+      recursoCategoriaInput.value = categoria;
+      formTitleRecursos.textContent = 'Editar Recurso';
+    }
+    
+    // Función para Eliminar Recurso
+    async function eliminarRecurso(id) {
+      if (confirm('¿Estás seguro de eliminar este recurso?')) {
+        try {
+          await deleteDoc(doc(db, "Recursos", id));
+          mostrarAlerta('success', 'Recurso eliminado exitosamente.');
+          cargarRecursos();
+        } catch (error) {
+          console.error('Error al eliminar el recurso:', error);
+          mostrarAlerta('danger', 'Error al eliminar el recurso. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // Función para Resetear Formulario de Recurso
+    recursoCancelarBtn.addEventListener('click', () => {
+      resetRecursoForm();
+    });
+    
+    function resetRecursoForm() {
+      recursoIdInput.value = '';
+      recursoForm.reset();
+      formTitleRecursos.textContent = 'Agregar Nuevo Recurso';
+    }
+    
+    // ============================
+    // Gestión de Blog
+    // ============================
+    const tablaBlog = document.getElementById('tabla-blog');
+    const blogForm = document.getElementById('blog-form');
+    const blogIdInput = document.getElementById('blog-id');
+    const blogTituloInput = document.getElementById('blog-titulo');
+    const blogContenidoInput = document.getElementById('blog-contenido');
+    const blogCategoriaInput = document.getElementById('blog-categoria');
+    const blogImagenInput = document.getElementById('blog-imagen');
+    const blogTagsInput = document.getElementById('blog-tags');
+    const blogCancelarBtn = document.getElementById('blog-cancelar');
+    const formTitleBlog = document.getElementById('form-title-blog');
+    
+    // Cargar Artículos del Blog al Iniciar
+    async function cargarBlog() {
+      try {
+        const blogCol = collection(db, "Blog");
+        const blogQuery = query(blogCol, orderBy("fecha_publicacion", "desc"), limit(100));
+        const blogSnapshot = await getDocs(blogQuery);
+        tablaBlog.innerHTML = '';
+        
+        blogSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.titulo)}</td>
+            <td>${escapeHTML(data.categoria)}</td>
+            <td>${data.fecha_publicacion ? data.fecha_publicacion.toDate().toLocaleDateString() : 'N/A'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" data-id="${docSnap.id}" data-titulo="${escapeHTML(data.titulo)}" data-contenido="${escapeHTML(data.contenido)}" data-categoria="${escapeHTML(data.categoria)}" data-imagen="${data.imagen}" data-tags="${escapeHTML(data.tags.join(', '))}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          tablaBlog.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de editar y eliminar
+        agregarEventosBlog();
+      } catch (error) {
+        console.error("Error al cargar artículos del blog:", error);
+        mostrarAlerta('danger', 'Error al cargar artículos del blog. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de blog
+    function agregarEventosBlog() {
+      // Editar
+      const botonesEditar = tablaBlog.querySelectorAll('button.btn-primary');
+      botonesEditar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          editarBlog(
+            btn.getAttribute('data-id'),
+            btn.getAttribute('data-titulo'),
+            btn.getAttribute('data-contenido'),
+            btn.getAttribute('data-categoria'),
+            btn.getAttribute('data-imagen'),
+            btn.getAttribute('data-tags')
+          );
+        });
+      });
+      
+      // Eliminar
+      const botonesEliminar = tablaBlog.querySelectorAll('button.btn-danger');
+      botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          eliminarBlog(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Manejar Envío de Formulario de Blog
+    blogForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = blogIdInput.value;
+      const titulo = blogTituloInput.value.trim();
+      const contenido = blogContenidoInput.value.trim();
+      const categoria = blogCategoriaInput.value.trim();
+      const imagen = blogImagenInput.value.trim();
+      const tags = blogTagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+      const fechaPublicacion = Timestamp.now();
+      
+      if (id) {
+        // Actualizar Artículo Existente
+        try {
+          const blogRef = doc(db, "Blog", id);
+          await updateDoc(blogRef, {
+            titulo,
+            contenido,
+            categoria,
+            imagen,
+            tags,
+            fecha_publicacion: fechaPublicacion
+          });
+          mostrarAlerta('success', 'Artículo actualizado exitosamente.');
+        } catch (error) {
+          console.error('Error al actualizar el artículo:', error);
+          mostrarAlerta('danger', 'Error al actualizar el artículo. Inténtalo nuevamente.');
+        }
+      } else {
+        // Agregar Nuevo Artículo
+        try {
+          await addDoc(collection(db, "Blog"), {
+            titulo,
+            contenido,
+            categoria,
+            imagen,
+            tags,
+            fecha_publicacion: fechaPublicacion
+          });
+          mostrarAlerta('success', 'Artículo agregado exitosamente.');
+        } catch (error) {
+          console.error('Error al agregar el artículo:', error);
+          mostrarAlerta('danger', 'Error al agregar el artículo. Inténtalo nuevamente.');
+        }
+      }
+      
+      // Resetear Formulario
+      resetBlogForm();
+      // Recargar Blog
+      cargarBlog();
+    });
+    
+    // Función para Editar Blog
+    function editarBlog(id, titulo, contenido, categoria, imagen, tags) {
+      blogIdInput.value = id;
+      blogTituloInput.value = titulo;
+      blogContenidoInput.value = contenido;
+      blogCategoriaInput.value = categoria;
+      blogImagenInput.value = imagen;
+      blogTagsInput.value = tags;
+      formTitleBlog.textContent = 'Editar Artículo';
+    }
+    
+    // Función para Eliminar Blog
+    async function eliminarBlog(id) {
+      if (confirm('¿Estás seguro de eliminar este artículo?')) {
+        try {
+          await deleteDoc(doc(db, "Blog", id));
+          mostrarAlerta('success', 'Artículo eliminado exitosamente.');
+          cargarBlog();
+        } catch (error) {
+          console.error('Error al eliminar el artículo:', error);
+          mostrarAlerta('danger', 'Error al eliminar el artículo. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // Función para Resetear Formulario de Blog
+    blogCancelarBtn.addEventListener('click', () => {
+      resetBlogForm();
+    });
+    
+    function resetBlogForm() {
+      blogIdInput.value = '';
+      blogForm.reset();
+      formTitleBlog.textContent = 'Agregar Nuevo Artículo';
+    }
+    
+    // ============================
+    // Gestión de Eventos
+    // ============================
+    const tablaEventos = document.getElementById('tabla-eventos');
+    const eventoForm = document.getElementById('evento-form');
+    const eventoIdInput = document.getElementById('evento-id');
+    const eventoNombreInput = document.getElementById('evento-nombre');
+    const eventoDescripcionInput = document.getElementById('evento-descripcion');
+    const eventoFechaInput = document.getElementById('evento-fecha');
+    const eventoUbicacionInput = document.getElementById('evento-ubicacion');
+    const eventoTipoInput = document.getElementById('evento-tipo');
+    const eventoEnlaceInput = document.getElementById('evento-enlace');
+    const eventoImagenInput = document.getElementById('evento-imagen');
+    const eventoCancelarBtn = document.getElementById('evento-cancelar');
+    const formTitleEventos = document.getElementById('form-title-eventos');
+    
+    // Cargar Eventos al Iniciar
+    async function cargarEventos() {
+      try {
+        const eventosCol = collection(db, "Eventos");
+        const eventosSnapshot = await getDocs(eventosCol);
+        tablaEventos.innerHTML = '';
+        
+        eventosSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.nombre)}</td>
+            <td>${escapeHTML(data.tipo)}</td>
+            <td>${data.fecha_hora ? new Date(data.fecha_hora.toDate()).toLocaleString() : 'N/A'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" data-id="${docSnap.id}" data-nombre="${escapeHTML(data.nombre)}" data-descripcion="${escapeHTML(data.descripcion)}" data-fecha="${data.fecha_hora ? data.fecha_hora.toDate().toISOString().slice(0,16) : ''}" data-ubicacion="${escapeHTML(data.ubicacion)}" data-tipo="${data.tipo}" data-enlace="${data.enlace_inscripcion}" data-imagen="${data.imagen}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          tablaEventos.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de editar y eliminar
+        agregarEventosEventos();
+      } catch (error) {
+        console.error("Error al cargar eventos:", error);
+        mostrarAlerta('danger', 'Error al cargar eventos. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de eventos
+    function agregarEventosEventos() {
+      // Editar
+      const botonesEditar = tablaEventos.querySelectorAll('button.btn-primary');
+      botonesEditar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          editarEvento(
+            btn.getAttribute('data-id'),
+            btn.getAttribute('data-nombre'),
+            btn.getAttribute('data-descripcion'),
+            btn.getAttribute('data-fecha'),
+            btn.getAttribute('data-ubicacion'),
+            btn.getAttribute('data-tipo'),
+            btn.getAttribute('data-enlace'),
+            btn.getAttribute('data-imagen')
+          );
+        });
+      });
+      
+      // Eliminar
+      const botonesEliminar = tablaEventos.querySelectorAll('button.btn-danger');
+      botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          eliminarEvento(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Manejar Envío de Formulario de Evento
+    eventoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = eventoIdInput.value;
+      const nombre = eventoNombreInput.value.trim();
+      const descripcion = eventoDescripcionInput.value.trim();
+      const fechaHora = eventoFechaInput.value;
+      const ubicacion = eventoUbicacionInput.value.trim();
+      const tipo = eventoTipoInput.value;
+      const enlaceInscripcion = eventoEnlaceInput.value.trim();
+      const imagen = eventoImagenInput.value.trim();
+      
+      if (new Date(fechaHora) < new Date()) {
+        mostrarAlerta('warning', 'La fecha y hora del evento no pueden estar en el pasado.');
+        return;
+      }
+      
+      if (id) {
+        // Actualizar Evento Existente
+        try {
+          const eventoRef = doc(db, "Eventos", id);
+          await updateDoc(eventoRef, {
+            nombre,
+            descripcion,
+            fecha_hora: Timestamp.fromDate(new Date(fechaHora)),
+            ubicacion,
+            tipo,
+            enlace_inscripcion: enlaceInscripcion,
+            imagen
+          });
+          mostrarAlerta('success', 'Evento actualizado exitosamente.');
+        } catch (error) {
+          console.error('Error al actualizar el evento:', error);
+          mostrarAlerta('danger', 'Error al actualizar el evento. Inténtalo nuevamente.');
+        }
+      } else {
+        // Agregar Nuevo Evento
+        try {
+          await addDoc(collection(db, "Eventos"), {
+            nombre,
+            descripcion,
+            fecha_hora: Timestamp.fromDate(new Date(fechaHora)),
+            ubicacion,
+            tipo,
+            enlace_inscripcion: enlaceInscripcion,
+            imagen
+          });
+          mostrarAlerta('success', 'Evento agregado exitosamente.');
+        } catch (error) {
+          console.error('Error al agregar el evento:', error);
+          mostrarAlerta('danger', 'Error al agregar el evento. Inténtalo nuevamente.');
+        }
+      }
+      
+      // Resetear Formulario
+      resetEventoForm();
+      // Recargar Eventos
+      cargarEventos();
+    });
+    
+    // Función para Editar Evento
+    function editarEvento(id, nombre, descripcion, fechaHora, ubicacion, tipo, enlace, imagen) {
+      eventoIdInput.value = id;
+      eventoNombreInput.value = nombre;
+      eventoDescripcionInput.value = descripcion;
+      eventoFechaInput.value = fechaHora;
+      eventoUbicacionInput.value = ubicacion;
+      eventoTipoInput.value = tipo;
+      eventoEnlaceInput.value = enlace;
+      eventoImagenInput.value = imagen;
+      formTitleEventos.textContent = 'Editar Evento';
+    }
+    
+    // Función para Eliminar Evento
+    async function eliminarEvento(id) {
+      if (confirm('¿Estás seguro de eliminar este evento?')) {
+        try {
+          await deleteDoc(doc(db, "Eventos", id));
+          mostrarAlerta('success', 'Evento eliminado exitosamente.');
+          cargarEventos();
+        } catch (error) {
+          console.error('Error al eliminar el evento:', error);
+          mostrarAlerta('danger', 'Error al eliminar el evento. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // Función para Resetear Formulario de Evento
+    eventoCancelarBtn.addEventListener('click', () => {
+      resetEventoForm();
+    });
+    
+    function resetEventoForm() {
+      eventoIdInput.value = '';
+      eventoForm.reset();
+      formTitleEventos.textContent = 'Agregar Nuevo Evento';
+    }
+    
+    // ============================
+    // Gestión de Postulaciones
+    // ============================
+    const tablaPostulaciones = document.getElementById('tabla-postulaciones');
+    
+    // Función para Cargar Postulaciones con Nombre de Programa
+    async function cargarPostulaciones() {
+      try {
+        // Primero, cargar todos los programas y crear un mapa de ID a Nombre
+        const programasCol = collection(db, "Programas");
+        const programasSnapshot = await getDocs(programasCol);
+        const programasMap = {};
+        programasSnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          programasMap[docSnap.id] = data.nombre;
+        });
+        
+        // Luego, cargar las postulaciones
+        const postulacionesCol = collection(db, "Postulaciones");
+        const postulacionesSnapshot = await getDocs(postulacionesCol);
+        tablaPostulaciones.innerHTML = '';
+        
+        postulacionesSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const programaNombre = programasMap[data.programa_id] || 'N/A';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.nombre)}</td>
+            <td>${escapeHTML(data.correo)}</td>
+            <td>${escapeHTML(programaNombre)}</td>
+            <td>
+              <span class="badge bg-${data.estado_postulacion === 'Aprobado' ? 'success' : data.estado_postulacion === 'Rechazado' ? 'danger' : 'secondary'}">
+                ${escapeHTML(data.estado_postulacion)}
+              </span>
+            </td>
+            <td>
+              ${data.estado_postulacion === 'Pendiente' ? `
+                <button class="btn btn-sm btn-success me-2" data-id="${docSnap.id}" data-estado="Aprobado">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" data-id="${docSnap.id}" data-estado="Rechazado">
+                  <i class="fas fa-times"></i>
+                </button>
+              ` : `
+                <span>No disponible</span>
+              `}
+            </td>
+          `;
+          tablaPostulaciones.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de cambiar estado
+        agregarEventosPostulaciones();
+      } catch (error) {
+        console.error("Error al cargar postulaciones:", error);
+        mostrarAlerta('danger', 'Error al cargar postulaciones. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de postulaciones
+    function agregarEventosPostulaciones() {
+      const botonesAprobar = tablaPostulaciones.querySelectorAll('button.btn-success');
+      botonesAprobar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          cambiarEstadoPostulacion(btn.getAttribute('data-id'), btn.getAttribute('data-estado'));
+        });
+      });
+      
+      const botonesRechazar = tablaPostulaciones.querySelectorAll('button.btn-danger');
+      botonesRechazar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          cambiarEstadoPostulacion(btn.getAttribute('data-id'), btn.getAttribute('data-estado'));
+        });
+      });
+    }
+    
+    // Función para Cambiar Estado de Postulación
+    async function cambiarEstadoPostulacion(id, nuevoEstado) {
+      if (!['Aprobado', 'Rechazado'].includes(nuevoEstado)) {
+        mostrarAlerta('danger', 'Estado inválido.');
+        return;
+      }
+      
+      if (confirm(`¿Estás seguro de ${nuevoEstado.toLowerCase()} esta postulación?`)) {
+        try {
+          const postulacionRef = doc(db, "Postulaciones", id);
+          await updateDoc(postulacionRef, {
+            estado_postulacion: nuevoEstado
+          });
+          mostrarAlerta('success', `Postulación ${nuevoEstado.toLowerCase()} exitosamente.`);
+          cargarPostulaciones();
+        } catch (error) {
+          console.error('Error al cambiar el estado de la postulación:', error);
+          mostrarAlerta('danger', 'Error al cambiar el estado. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // ============================
+    // Gestión de Testimonios
+    // ============================
+    const tablaTestimonios = document.getElementById('tabla-testimonios');
+    const testimonioForm = document.getElementById('testimonio-form');
+    const testimonioIdInput = document.getElementById('testimonio-id');
+    const testimonioNombreInput = document.getElementById('testimonio-nombre');
+    const testimonioDescripcionInput = document.getElementById('testimonio-descripcion');
+    const testimonioProyectoInput = document.getElementById('testimonio-proyecto');
+    const testimonioImagenInput = document.getElementById('testimonio-imagen');
+    const testimonioCancelarBtn = document.getElementById('testimonio-cancelar');
+    const formTitleTestimonios = document.getElementById('form-title-testimonios');
+    
+    // Cargar Testimonios al Iniciar
+    async function cargarTestimonios() {
+      try {
+        const testimoniosCol = collection(db, "Testimonios");
+        const testimoniosSnapshot = await getDocs(testimoniosCol);
+        tablaTestimonios.innerHTML = '';
+        
+        testimoniosSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.nombre)}</td>
+            <td>${escapeHTML(data.proyecto)}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" data-id="${docSnap.id}" data-nombre="${escapeHTML(data.nombre)}" data-descripcion="${escapeHTML(data.descripcion)}" data-proyecto="${escapeHTML(data.proyecto)}" data-imagen="${data.imagen}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          tablaTestimonios.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de editar y eliminar
+        agregarEventosTestimonios();
+      } catch (error) {
+        console.error("Error al cargar testimonios:", error);
+        mostrarAlerta('danger', 'Error al cargar testimonios. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de testimonios
+    function agregarEventosTestimonios() {
+      // Editar
+      const botonesEditar = tablaTestimonios.querySelectorAll('button.btn-primary');
+      botonesEditar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          editarTestimonio(
+            btn.getAttribute('data-id'),
+            btn.getAttribute('data-nombre'),
+            btn.getAttribute('data-descripcion'),
+            btn.getAttribute('data-proyecto'),
+            btn.getAttribute('data-imagen')
+          );
+        });
+      });
+      
+      // Eliminar
+      const botonesEliminar = tablaTestimonios.querySelectorAll('button.btn-danger');
+      botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', () => {
+          eliminarTestimonio(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Manejar Envío de Formulario de Testimonio
+    testimonioForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = testimonioIdInput.value;
+      const nombre = testimonioNombreInput.value.trim();
+      const descripcion = testimonioDescripcionInput.value.trim();
+      const proyecto = testimonioProyectoInput.value.trim();
+      const imagen = testimonioImagenInput.value.trim();
+      
+      if (id) {
+        // Actualizar Testimonio Existente
+        try {
+          const testimonioRef = doc(db, "Testimonios", id);
+          await updateDoc(testimonioRef, {
+            nombre,
+            descripcion,
+            proyecto,
+            imagen
+          });
+          mostrarAlerta('success', 'Testimonio actualizado exitosamente.');
+        } catch (error) {
+          console.error('Error al actualizar el testimonio:', error);
+          mostrarAlerta('danger', 'Error al actualizar el testimonio. Inténtalo nuevamente.');
+        }
+      } else {
+        // Agregar Nuevo Testimonio
+        try {
+          await addDoc(collection(db, "Testimonios"), {
+            nombre,
+            descripcion,
+            proyecto,
+            imagen
+          });
+          mostrarAlerta('success', 'Testimonio agregado exitosamente.');
+        } catch (error) {
+          console.error('Error al agregar el testimonio:', error);
+          mostrarAlerta('danger', 'Error al agregar el testimonio. Inténtalo nuevamente.');
+        }
+      }
+      
+      // Resetear Formulario
+      resetTestimonioForm();
+      // Recargar Testimonios
+      cargarTestimonios();
+    });
+    
+    // Función para Editar Testimonio
+    function editarTestimonio(id, nombre, descripcion, proyecto, imagen) {
+      testimonioIdInput.value = id;
+      testimonioNombreInput.value = nombre;
+      testimonioDescripcionInput.value = descripcion;
+      testimonioProyectoInput.value = proyecto;
+      testimonioImagenInput.value = imagen;
+      formTitleTestimonios.textContent = 'Editar Testimonio';
+    }
+    
+    // Función para Eliminar Testimonio
+    async function eliminarTestimonio(id) {
+      if (confirm('¿Estás seguro de eliminar este testimonio?')) {
+        try {
+          await deleteDoc(doc(db, "Testimonios", id));
+          mostrarAlerta('success', 'Testimonio eliminado exitosamente.');
+          cargarTestimonios();
+        } catch (error) {
+          console.error('Error al eliminar el testimonio:', error);
+          mostrarAlerta('danger', 'Error al eliminar el testimonio. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // Función para Resetear Formulario de Testimonio
+    testimonioCancelarBtn.addEventListener('click', () => {
+      resetTestimonioForm();
+    });
+    
+    function resetTestimonioForm() {
+      testimonioIdInput.value = '';
+      testimonioForm.reset();
+      formTitleTestimonios.textContent = 'Agregar Nuevo Testimonio';
+    }
+    
+    // ============================
+    // Gestión de Contacto
+    // ============================
+    const tablaContacto = document.getElementById('tabla-contacto');
+    
+    // Función para Cargar Mensajes de Contacto
+    async function cargarContacto() {
+      try {
+        const contactoCol = collection(db, "Contacto");
+        const contactoSnapshot = await getDocs(contactoCol);
+        tablaContacto.innerHTML = '';
+        
+        contactoSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHTML(data.nombre)}</td>
+            <td>${escapeHTML(data.correo)}</td>
+            <td>${escapeHTML(data.asunto)}</td>
+            <td>${escapeHTML(data.mensaje)}</td>
+            <td>
+              <span class="badge bg-${data.estado === 'Leído' ? 'success' : 'secondary'}">
+                ${escapeHTML(data.estado)}
+              </span>
+            </td>
+            <td>
+              ${data.estado !== 'Leído' ? `
+                <button class="btn btn-sm btn-success" data-id="${docSnap.id}">
+                  <i class="fas fa-check"></i>
+                </button>
+              ` : `
+                <span>No disponible</span>
+              `}
+            </td>
+          `;
+          tablaContacto.appendChild(tr);
+        });
+        
+        // Añadir Event Listeners a los botones de marcar como leído
+        agregarEventosContacto();
+      } catch (error) {
+        console.error("Error al cargar mensajes de contacto:", error);
+        mostrarAlerta('danger', 'Error al cargar mensajes de contacto. Inténtalo más tarde.');
+      }
+    }
+    
+    // Agregar Event Listeners a los botones de contacto
+    function agregarEventosContacto() {
+      const botonesLeido = tablaContacto.querySelectorAll('button.btn-success');
+      botonesLeido.forEach(btn => {
+        btn.addEventListener('click', () => {
+          marcarComoLeido(btn.getAttribute('data-id'));
+        });
+      });
+    }
+    
+    // Función para Marcar Mensaje como Leído
+    async function marcarComoLeido(id) {
+      if (confirm('¿Marcar este mensaje como leído?')) {
+        try {
+          const mensajeRef = doc(db, "Contacto", id);
+          await updateDoc(mensajeRef, {
+            estado: 'Leído'
+          });
+          mostrarAlerta('success', 'Mensaje marcado como leído.');
+          cargarContacto();
+        } catch (error) {
+          console.error('Error al marcar como leído:', error);
+          mostrarAlerta('danger', 'Error al marcar como leído. Inténtalo nuevamente.');
+        }
+      }
+    }
+    
+    // ============================
+    // Inicialización
+    // ============================
+    window.onload = function() {
+      cargarProgramas();
+      cargarRecursos();
+      cargarBlog();
+      cargarEventos();
+      cargarPostulaciones();
+      cargarTestimonios();
+      cargarContacto();
+    };
+    
+  </script>
+  
+  <!-- Bootstrap JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+  
+</body>
+</html>

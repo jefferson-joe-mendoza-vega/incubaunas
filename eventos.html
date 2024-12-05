@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Eventos - Incubadora de Startups</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome para Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos CSS Personalizados -->
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fa;
+      color: #343a40;
+    }
+    
+    header {
+      background-color: #343a40;
+      padding: 20px 0;
+    }
+    
+    header nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 0;
+      padding: 0;
+    }
+    
+    header nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s, border-bottom 0.3s;
+    }
+    
+    header nav ul li a:hover,
+    header nav ul li a.active {
+      color: #ffc107;
+      border-bottom: 2px solid #ffc107;
+    }
+    
+    footer {
+      background-color: #343a40;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
+    
+    .social-media a {
+      margin: 0 10px;
+      color: #fff;
+      font-size: 1.5rem;
+      transition: color 0.3s;
+    }
+    
+    .social-media a:hover {
+      color: #ffc107;
+    }
+    
+    /* Estilos para Eventos */
+    #lista-eventos .card {
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    #lista-eventos .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    /* Indicador de Carga */
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50vh;
+    }
+    
+    /* Filtros y Búsqueda */
+    #filtros {
+      margin-bottom: 30px;
+    }
+    
+    @media (max-width: 576px) {
+      header nav ul {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .social-media a {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Header -->
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="programas.html">Programas</a></li>
+        <li><a href="recursos.html">Recursos</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="eventos.html" class="active">Eventos</a></li>
+        <li><a href="postulaciones.html">Postulaciones</a></li>
+        <li><a href="testimonios.html">Testimonios</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <!-- Contenido Principal -->
+  <main class="container mt-5">
+    <h1 class="text-center mb-5">Próximos Eventos</h1>
+    
+    <!-- Filtros y Búsqueda -->
+    <div id="filtros" class="row">
+      <div class="col-md-6 mb-3">
+        <input type="text" id="busqueda" class="form-control" placeholder="Buscar eventos..." aria-label="Buscar eventos">
+      </div>
+      <div class="col-md-6 mb-3">
+        <select id="filtro-tipo" class="form-select" aria-label="Filtrar por Tipo">
+          <option value="">Filtrar por Tipo</option>
+          <option value="Webinar">Webinar</option>
+          <option value="Taller">Taller</option>
+          <option value="Conferencia">Conferencia</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Lista de Eventos -->
+    <div id="lista-eventos" class="row">
+      <!-- Eventos cargados dinámicamente aquí -->
+    </div>
+    
+    <!-- Indicador de Carga -->
+    <div id="indicador-carga" class="spinner-container d-none">
+      <div class="spinner-border text-primary" role="status" aria-label="Cargando eventos">
+        <span class="visually-hidden">Cargando eventos...</span>
+      </div>
+    </div>
+    
+    <!-- Mensaje de No Eventos -->
+    <div id="mensaje-no-eventos" class="text-center text-muted d-none">
+      <p>No hay eventos próximos.</p>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer>
+    <p>© 2024 Incubadora de Startups. Todos los derechos reservados.</p>
+    <div class="social-media">
+      <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://twitter.com" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+  </footer>
+  
+  <!-- Scripts JavaScript Embebidos -->
+  <script type="module">
+    // Importar las funciones necesarias de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAm0E9mC_wUZvx7gKiZ1llWo-DEjtY9Xes",
+      authDomain: "ubaunas.firebaseapp.com",
+      projectId: "ubaunas",
+      storageBucket: "ubaunas.firebasestorage.app",
+      messagingSenderId: "66441546910",
+      appId: "1:66441546910:web:c6f850192ee18361383f8f",
+      measurementId: "G-5E6X47T6R4"
+    };
+    
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    /**
+     * Función para escapar HTML y prevenir XSS
+     * @param {string} text - Texto a sanitizar
+     * @returns {string} Texto sanitizado
+     */
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    /**
+     * Función para formatear la fecha desde Timestamp
+     * @param {object} timestamp - Timestamp de Firestore
+     * @returns {string} Fecha formateada
+     */
+    function formatearFecha(timestamp) {
+      if (!timestamp || !timestamp.toDate) return 'Fecha no disponible';
+      const date = timestamp.toDate();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      return date.toLocaleDateString('es-ES', options);
+    }
+    
+    /**
+     * Función para validar URLs
+     * @param {string} url - URL a validar
+     * @returns {boolean} Verdadero si es válida, falso de lo contrario
+     */
+    function esURLValida(url) {
+      const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocolo
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // dominio
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // IP
+        '(\\:\\d+)?(\\/[-a-z\\d%@_.~+&:]*)*' + // puerto y ruta
+        '(\\?[;&a-z\\d%@_.,~+&:=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$','i'); // fragmento
+      return !!pattern.test(url);
+    }
+    
+    /**
+     * Función para mostrar eventos en la página
+     */
+    async function mostrarEventos() {
+      const listaEventos = document.getElementById('lista-eventos');
+      const indicadorCarga = document.getElementById('indicador-carga');
+      const mensajeNoEventos = document.getElementById('mensaje-no-eventos');
+      
+      // Mostrar indicador de carga
+      indicadorCarga.classList.remove('d-none');
+      listaEventos.innerHTML = '';
+      mensajeNoEventos.classList.add('d-none');
+      
+      try {
+        // Consultar eventos ordenados por fecha ascendente
+        const q = query(collection(db, "Eventos"), orderBy("fecha_hora", "asc"));
+        const querySnapshot = await getDocs(q);
+        
+        // Verificar si hay eventos
+        if (querySnapshot.empty) {
+          mensajeNoEventos.classList.remove('d-none');
+          indicadorCarga.classList.add('d-none');
+          return;
+        }
+        
+        // Iterar sobre los eventos y crear tarjetas
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const nombreEvento = escapeHTML(data.nombre || 'Sin Nombre');
+          const descripcion = escapeHTML(data.descripcion || 'Sin Descripción');
+          const fechaEvento = data.fecha_hora ? formatearFecha(data.fecha_hora) : 'Fecha no disponible';
+          const enlaceInscripcion = esURLValida(data.enlace_inscripcion) ? escapeHTML(data.enlace_inscripcion) : '#';
+          const imagenEvento = esURLValida(data.imagen) ? escapeHTML(data.imagen) : 'https://via.placeholder.com/600x400';
+          const tipoEvento = escapeHTML(data.tipo || 'Otro');
+          
+          const eventoDiv = document.createElement('div');
+          eventoDiv.className = 'col-md-6';
+          eventoDiv.dataset.tipo = tipoEvento.toLowerCase(); // Añadir data-tipo para filtrado
+          eventoDiv.innerHTML = `
+            <div class="card h-100">
+              <img src="${imagenEvento}" class="card-img-top" alt="Imagen de ${nombreEvento}" onerror="this.src='https://via.placeholder.com/600x400';">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${nombreEvento}</h5>
+                <p class="card-text">${descripcion}</p>
+                <p class="card-text"><small class="text-muted">Fecha: ${fechaEvento}</small></p>
+                <a href="${enlaceInscripcion}" class="btn btn-primary mt-auto" target="_blank" rel="noopener noreferrer" aria-label="Inscribirse en ${nombreEvento}">
+                  <i class="fas fa-paper-plane me-2"></i> Inscribirse
+                </a>
+              </div>
+            </div>
+          `;
+          listaEventos.appendChild(eventoDiv);
+        });
+        
+      } catch (error) {
+        console.error("Error al cargar eventos:", error);
+        listaEventos.innerHTML = `
+          <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+              Hubo un error al cargar los eventos. Por favor, inténtalo más tarde.
+            </div>
+          </div>
+        `;
+      } finally {
+        // Ocultar indicador de carga
+        indicadorCarga.classList.add('d-none');
+      }
+    }
+    
+    /**
+     * Función para aplicar filtros y búsqueda
+     */
+    function aplicarFiltros() {
+      const busquedaInput = document.getElementById('busqueda').value.trim().toLowerCase();
+      const filtroTipo = document.getElementById('filtro-tipo').value.toLowerCase();
+      const eventos = document.querySelectorAll('#lista-eventos .col-md-6');
+      
+      let eventosVisibles = 0;
+      
+      eventos.forEach(card => {
+        const tipo = card.dataset.tipo || '';
+        const cumpleBusqueda = card.querySelector('.card-title').textContent.toLowerCase().includes(busquedaInput);
+        const cumpleTipo = filtroTipo === '' || tipo === filtroTipo;
+        
+        if (cumpleBusqueda && cumpleTipo) {
+          card.classList.remove('d-none');
+          eventosVisibles++;
+        } else {
+          card.classList.add('d-none');
+        }
+      });
+      
+      // Mostrar u ocultar el mensaje de no eventos filtrados
+      const mensajeNoEventos = document.getElementById('mensaje-no-eventos');
+      if (eventosVisibles === 0) {
+        mensajeNoEventos.classList.remove('d-none');
+      } else {
+        mensajeNoEventos.classList.add('d-none');
+      }
+    }
+    
+    /**
+     * Función para inicializar la página
+     */
+    window.onload = function() {
+      mostrarEventos();
+      
+      // Añadir event listeners para filtros y búsqueda
+      const busquedaInput = document.getElementById('busqueda');
+      const filtroTipo = document.getElementById('filtro-tipo');
+      
+      busquedaInput.addEventListener('input', aplicarFiltros);
+      filtroTipo.addEventListener('change', aplicarFiltros);
+    };
+  </script>
+  
+  <!-- Bootstrap JS CDN (opcional si se usan componentes de Bootstrap que requieren JavaScript) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+  
+</body>
+</html>
